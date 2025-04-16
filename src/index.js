@@ -1,6 +1,12 @@
 import { attr } from './utilities';
 import { hoverActive } from './interactions/hover-active';
+import { initLenis } from './interactions/lenis';
+import { load } from './interactions/load';
+
+import { marquee } from './interactions/marquee';
 import { scrollIn } from './interactions/scroll-in';
+import { scrolling } from './interactions/scrolling';
+import { createSlider } from './interactions/slider';
 
 document.addEventListener('DOMContentLoaded', function () {
   // Comment out for production
@@ -15,7 +21,26 @@ document.addEventListener('DOMContentLoaded', function () {
 
   //////////////////////////////
   //Global Variables
+  let lenis;
 
+  //////////////////////////////
+  //Slider instances
+  const testimonialSlider = function () {
+    const COMPONENT = '.testimonial_layout';
+    const components = [...document.querySelectorAll(COMPONENT)];
+    const options = {
+      slidesPerView: 'auto',
+      loop: true,
+    };
+    //apply a module with defaults settings (canc override them using the options object above)
+    const modules = {
+      navigation: true,
+      pagination: true,
+      scrollbar: false,
+      autoplay: false,
+    };
+    const sliders = createSlider(components, options, modules);
+  };
   //////////////////////////////
   //Control Functions on page load
   const gsapInit = function () {
@@ -30,11 +55,17 @@ document.addEventListener('DOMContentLoaded', function () {
       },
       (gsapContext) => {
         let { isMobile, isTablet, isDesktop, reduceMotion } = gsapContext.conditions;
+        lenis = initLenis();
+        load(gsapContext);
+        marquee(gsapContext);
+        testimonialSlider();
+
         //functional interactions
         hoverActive(gsapContext);
         //conditional interactions
         if (!reduceMotion) {
           scrollIn(gsapContext);
+          scrolling(gsapContext);
         }
       }
     );
@@ -64,4 +95,17 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   };
   scrollReset();
+
+  const updaterFooterYear = function () {
+    // set the fs-hacks selector
+    const YEAR_SELECTOR = '[data-footer-year]';
+    // get the the span element
+    const yearSpan = document.querySelector(YEAR_SELECTOR);
+    if (!yearSpan) return;
+    // get the current year
+    const currentYear = new Date().getFullYear();
+    // set the year span element's text to the current year
+    yearSpan.innerText = currentYear.toString();
+  };
+  updaterFooterYear();
 });
