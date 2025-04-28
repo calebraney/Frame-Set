@@ -64,8 +64,10 @@ document.addEventListener('DOMContentLoaded', function () {
         hoverActive(gsapContext);
         //conditional interactions
         if (!reduceMotion) {
-          scrollIn(gsapContext);
           scrolling(gsapContext);
+        }
+        if (!reduceMotion && !isMobile) {
+          scrollIn(gsapContext);
         }
       }
     );
