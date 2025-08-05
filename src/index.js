@@ -57,6 +57,7 @@ document.addEventListener('DOMContentLoaded', function () {
         let { isMobile, isTablet, isDesktop, reduceMotion } = gsapContext.conditions;
         lenis = initLenis();
         load(gsapContext);
+        accordion(gsapContext);
         marquee(gsapContext);
         testimonialSlider();
 
