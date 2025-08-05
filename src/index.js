@@ -2,7 +2,7 @@ import { attr } from './utilities';
 import { hoverActive } from './interactions/hover-active';
 import { initLenis } from './interactions/lenis';
 import { load } from './interactions/load';
-
+import { accordion } from './interactions/accordion';
 import { marquee } from './interactions/marquee';
 import { scrollIn } from './interactions/scroll-in';
 import { scrolling } from './interactions/scrolling';
