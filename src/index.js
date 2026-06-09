@@ -1,8 +1,7 @@
 import { attr } from './utilities';
-import { hoverActive } from './interactions/hover-active';
+import { activate } from './interactions/activate';
 import { initLenis } from './interactions/lenis';
 import { load } from './interactions/load';
-import { accordion } from './interactions/accordion';
 import { marquee } from './interactions/marquee';
 import { scrollIn } from './interactions/scroll-in';
 import { scrolling } from './interactions/scrolling';
@@ -10,7 +9,7 @@ import { createSlider } from './interactions/slider';
 
 document.addEventListener('DOMContentLoaded', function () {
   // Comment out for production
-  console.log('Local Script');
+  // console.log('Local Script');
   // register gsap plugins if available
   if (gsap.ScrollTrigger !== undefined) {
     gsap.registerPlugin(ScrollTrigger);
@@ -56,19 +55,15 @@ document.addEventListener('DOMContentLoaded', function () {
       (gsapContext) => {
         let { isMobile, isTablet, isDesktop, reduceMotion } = gsapContext.conditions;
         lenis = initLenis();
-        load(gsapContext);
-        accordion(gsapContext);
-        marquee(gsapContext);
+        load(reduceMotion);
+        activate();
+        marquee();
         testimonialSlider();
 
-        //functional interactions
-        hoverActive(gsapContext);
         //conditional interactions
         if (!reduceMotion) {
-          scrolling(gsapContext);
-        }
-        if (!reduceMotion && !isMobile) {
-          scrollIn(gsapContext);
+          scrolling();
+          scrollIn();
         }
       }
     );
