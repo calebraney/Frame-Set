@@ -1,96 +1,97 @@
-import { attr, checkBreakpoints } from '../utilities';
+import { attr, checkRunProp, checkContainer, getAttrConfig, getIxConfig } from '../utilities';
 
-export const marquee = function (gsapContext) {
+export const marquee = function () {
   //animation ID
   const ANIMATION_ID = 'marquee';
   const WRAP = '[data-ix-marquee="wrap"]';
   const LIST = '[data-ix-marquee="list"]'; // put on the CMS LIST WRAP element (NOT THE LIST)
-  const VERTICAL = 'data-ix-marquee-vertical'; // needs to be set to true if vertical
-  const REVERSE = 'data-ix-marquee-reverse'; // needs to be set to true if reversed
-  const DURATION = 'data-ix-marquee-duration'; //set a custom duration in seconds
-  const DYNAMIC_DURATION = 'data-ix-marquee-duration-dynamic'; // set to true to make the duration dynamic per amount of items
-  const DURATION_PER_ITEM = 'data-ix-marquee-duration-per-item'; // the duration per the amount of items
-  const HOVER_EFFECT = 'data-ix-marquee-hover'; //option for hover effect
   const ACCELERATE_ON_HOVER = 'accelerate';
   const DECELERATE_ON_HOVER = 'decelerate';
   const PAUSE_ON_HOVER = 'pause';
-  //defaults
-  const DEFAULT_DURATION = 30;
-  const DEFAULT_DYNAMIC_DURATION = 5;
+
+  const ixEnabled = getIxConfig(ANIMATION_ID, true);
+  if (ixEnabled === false) return;
 
   //for each wrap
   const wraps = document.querySelectorAll(WRAP);
   if (wraps.length === 0) return;
   wraps.forEach((wrap) => {
-    //check to run on breakpoint
-    let runOnBreakpoint = checkBreakpoints(wrap, ANIMATION_ID, gsapContext);
-    if (runOnBreakpoint === false) return;
-
+    //get lists
     const lists = [...wrap.querySelectorAll(LIST)];
-    let vertical = attr(false, wrap.getAttribute(VERTICAL));
-    let reverse = attr(false, wrap.getAttribute(REVERSE));
-    let duration = attr(DEFAULT_DURATION, wrap.getAttribute(DURATION));
-    let durationDynamic = attr(false, wrap.getAttribute(DYNAMIC_DURATION));
-    let durationPerItem = attr(DEFAULT_DYNAMIC_DURATION, wrap.getAttribute(DURATION_PER_ITEM));
-    // get the amount of items in the wrap
-    let itemCount = lists[0].childElementCount;
-    if (itemCount === 1) {
-      //if there is only one item get the list element inside it and count the amount of elements in that
-      itemCount = lists[0].firstElementChild.childElementCount;
-    }
-    //if duration is set to be dynamic make the duration based on the amount of items and the duration per item
-    if (durationDynamic) {
-      duration = itemCount * durationPerItem;
-    }
-
-    let hoverEffect = attr('none', wrap.getAttribute(HOVER_EFFECT));
-
-    let direction = 1;
-    if (reverse) {
-      direction = -1;
-    }
-    let tl = gsap.timeline({
-      repeat: -1,
-      defaults: {
-        ease: 'none',
-      },
-    });
-    tl.fromTo(
-      lists,
-      {
-        xPercent: 0,
-        yPercent: 0,
-      },
-      {
-        // if vertical is true move yPercent, otherwise move x percent
-        xPercent: vertical ? 0 : -100 * direction,
-        yPercent: vertical ? -100 * direction : 0,
-        duration: duration,
+    //animation function
+    const animation = function (match) {
+      if (match) return;
+      const config = getAttrConfig(wrap, ANIMATION_ID, {
+        vertical: false,
+        reverse: false,
+        duration: 30, //duration in seconds
+        durationDynamic: false,
+        durationPerItem: 5, // only used if durationDynamic is true — determines the duration based on the amount of items in the list
+        hover: 'none', // or use one of the constants for hover behavior
+      });
+      // get the amount of items in the wrap
+      let itemCount = lists[0].childElementCount;
+      if (itemCount === 1) {
+        //if there is only one item get the list element inside it and count the amount of elements in that
+        itemCount = lists[0].firstElementChild.childElementCount;
       }
-    );
-    if (hoverEffect === ACCELERATE_ON_HOVER) {
-      wrap.addEventListener('mouseenter', (event) => {
-        tl.timeScale(2);
+      //if duration is set to be dynamic make the duration based on the amount of items and the duration per item
+      let duration = config.durationDynamic ? itemCount * config.durationPerItem : config.duration;
+
+      let direction = 1;
+      if (config.reverse) {
+        direction = -1;
+      }
+      let tl = gsap.timeline({
+        repeat: -1,
+        defaults: {
+          ease: 'none',
+        },
       });
-      wrap.addEventListener('mouseleave', (event) => {
-        tl.timeScale(1);
-      });
-    }
-    if (hoverEffect === DECELERATE_ON_HOVER) {
-      wrap.addEventListener('mouseenter', (event) => {
-        tl.timeScale(0.5);
-      });
-      wrap.addEventListener('mouseleave', (event) => {
-        tl.timeScale(1);
-      });
-    }
-    if (hoverEffect === PAUSE_ON_HOVER) {
-      wrap.addEventListener('mouseenter', (event) => {
-        tl.pause();
-      });
-      wrap.addEventListener('mouseleave', (event) => {
-        tl.play();
-      });
-    }
+      tl.fromTo(
+        lists,
+        {
+          xPercent: 0,
+          yPercent: 0,
+        },
+        {
+          // if vertical is true move yPercent, otherwise move x percent
+          xPercent: config.vertical ? 0 : -100 * direction,
+          yPercent: config.vertical ? -100 * direction : 0,
+          duration: duration,
+        }
+      );
+      if (config.hover === ACCELERATE_ON_HOVER) {
+        wrap.addEventListener('mouseenter', (event) => {
+          tl.timeScale(2);
+        });
+        wrap.addEventListener('mouseleave', (event) => {
+          tl.timeScale(1);
+        });
+      }
+      if (config.hover === DECELERATE_ON_HOVER) {
+        wrap.addEventListener('mouseenter', (event) => {
+          tl.timeScale(0.5);
+        });
+        wrap.addEventListener('mouseleave', (event) => {
+          tl.timeScale(1);
+        });
+      }
+      if (config.hover === PAUSE_ON_HOVER) {
+        wrap.addEventListener('mouseenter', (event) => {
+          tl.pause();
+        });
+        wrap.addEventListener('mouseleave', (event) => {
+          tl.play();
+        });
+      }
+    };
+    //check if the run prop is set to true
+    let runProp = checkRunProp(wrap, ANIMATION_ID);
+    if (runProp === false) return;
+
+    //check container breakpoint and run callback.
+    const breakpoint = attr('none', wrap.getAttribute(`data-ix-${ANIMATION_ID}-breakpoint`));
+    checkContainer(lists[0], breakpoint, animation);
   });
 };

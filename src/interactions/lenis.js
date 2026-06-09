@@ -1,6 +1,13 @@
 //Setup
-import Lenis from '@studio-freight/lenis';
+import Lenis from 'lenis';
+import { getIxConfig } from '../utilities';
+
 export const initLenis = function () {
+  const ANIMATION_ID = 'lenis';
+
+  const ixEnabled = getIxConfig(ANIMATION_ID, true);
+  if (ixEnabled === false) return;
+
   const lenis = new Lenis({
     duration: 0.5,
     wheelMultiplier: 0.75,
@@ -9,14 +16,7 @@ export const initLenis = function () {
     smoothTouch: false,
     easing: (t) => (t === 1 ? 1 : 1 - Math.pow(2, -10 * t)), // https://easings.net
   });
-  // lenis request animation from
-  function raf(time) {
-    lenis.raf(time);
-    requestAnimationFrame(raf);
-  }
-  requestAnimationFrame(raf);
-
-  // Keep lenis and scrolltrigger in sync
+  // Keep lenis and scrolltrigger in sync using a single gsap ticker source
   lenis.on('scroll', () => {
     if (!ScrollTrigger) return;
     ScrollTrigger.update();
@@ -37,8 +37,7 @@ export const initLenis = function () {
     clearTimeout(resizeTimeout); // Cancel previous resize calls
     resizeTimeout = setTimeout(() => {
       requestAnimationFrame(() => {
-        lenis.resize(); // Recalculate dimensions inside requestAnimationFrame for smoother transitions
-        console.log('refresh');
+        lenis.resize();
       });
     }, delay);
   }
